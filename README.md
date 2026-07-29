@@ -1,20 +1,154 @@
-<<<<<<< HEAD
-# React + Vite
+# Bellas Boutique Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend del proyecto Bellas Boutique desarrollado para el curso Diseño de la Interacción Humano-Computadora.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tecnologías
 
-## React Compiler
+- React 19
+- Vite
+- Tailwind CSS 4
+- React Router DOM
+- Axios
+- React Icons
+- SweetAlert2
+- ESLint
+- Prettier
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Requisitos
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-=======
-# ProyectoBellasBoutiqueGrupo8
->>>>>>> 620734c3313bbccef06d9eaadbb54ed225cd4b24
+Antes de ejecutar el proyecto debe tener instalado:
+
+- Node.js 22 o superior
+- npm
+
+Verificar instalación:
+
+```bash
+node -v
+
+npm -v
+```
+
+---
+
+## Clonar el proyecto
+
+```bash
+git clone https://github.com/usuario/bellas-boutique-frontend.git
+```
+
+Entrar al proyecto
+
+```bash
+cd bellas-boutique-frontend
+```
+
+---
+
+## Instalar dependencias
+
+```bash
+npm install
+```
+
+---
+
+## Ejecutar
+
+```bash
+npm run dev
+```
+
+Abrir
+
+```
+http://localhost:5173
+```
+
+---
+
+## Compilar producción
+
+```bash
+npm run build
+```
+
+---
+
+## Vista previa
+
+```bash
+npm run preview
+```
+
+---
+
+## Estructura
+
+```
+src/
+
+assets/
+
+components/
+
+pages/
+
+layouts/
+
+routes/
+
+services/
+
+hooks/
+
+context/
+
+utils/
+
+styles/
+```
+
+---
+
+## Convenciones
+
+- Un componente por carpeta.
+- Nombres de componentes en PascalCase.
+- Funciones en camelCase.
+- No modificar código de otros módulos sin comunicarlo.
+- Cada funcionalidad debe desarrollarse en una rama propia.
+
+---
+
+## Flujo de trabajo Git
+
+Crear una rama
+
+```bash
+git checkout -b feature/login
+```
+
+Subir cambios
+
+```bash
+git add .
+
+git commit -m "ej: Cambio hecho"
+
+git push origin branch
+```
+
+Crear un Pull Request hacia `develop`.
+
+---
+
+## Equipo
+
+- Pedro Melendez
+- Saray Chaves
+- David Corella
