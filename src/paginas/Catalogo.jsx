@@ -1,22 +1,27 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import TarjetaProducto from '../componentes/TarjetaProducto.jsx'
-import { CATEGORIAS, TALLAS, productos } from '../datos/productos.js'
+import { CATEGORIAS, CATEGORIAS_POR_GENERO, GENEROS, TALLAS } from '../datos/productos.js'
+import { useProductos } from '../contexto/ProductosContext.jsx'
 import { colones } from '../contexto/CarritoContext.jsx'
 import { IconoBuscar, IconoFiltro } from '../componentes/Iconos.jsx'
 
 const PRECIO_MAXIMO = 30000
 
 export default function Catalogo() {
+  const { productos } = useProductos()
   const [parametros, setParametros] = useSearchParams()
   const soloOfertas = parametros.get('oferta') === '1'
 
   const [busqueda, setBusqueda] = useState('')
+  const [genero, setGenero] = useState(parametros.get('genero') || '')
   const [categoria, setCategoria] = useState(parametros.get('categoria') || '')
   const [tallasElegidas, setTallasElegidas] = useState([])
   const [precioTope, setPrecioTope] = useState(PRECIO_MAXIMO)
   const [orden, setOrden] = useState('relevancia')
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+
+  const categoriasVisibles = genero ? CATEGORIAS_POR_GENERO[genero] : CATEGORIAS
 
   const alternarTalla = (talla) =>
     setTallasElegidas((actuales) =>
@@ -30,14 +35,25 @@ export default function Catalogo() {
     setParametros(nuevos, { replace: true })
   }
 
+  const cambiarGenero = (valor) => {
+    setGenero(valor)
+    setCategoria('') // las categorías dependen del género, así que se reinicia
+    const nuevos = new URLSearchParams(parametros)
+    valor ? nuevos.set('genero', valor) : nuevos.delete('genero')
+    nuevos.delete('categoria')
+    setParametros(nuevos, { replace: true })
+  }
+
   const limpiar = () => {
     setBusqueda('')
     setTallasElegidas([])
     setPrecioTope(PRECIO_MAXIMO)
     setOrden('relevancia')
+    setGenero('')
     cambiarCategoria('')
     const nuevos = new URLSearchParams(parametros)
     nuevos.delete('oferta')
+    nuevos.delete('genero')
     setParametros(nuevos, { replace: true })
   }
 
@@ -47,8 +63,13 @@ export default function Catalogo() {
     const filtrados = productos.filter((p) => {
       if (texto && !`${p.nombre} ${p.descripcion} ${p.categoria}`.toLowerCase().includes(texto))
         return false
+      if (genero && p.genero !== genero) return false
       if (categoria && p.categoria !== categoria) return false
-      if (tallasElegidas.length && !p.tallas.some((t) => tallasElegidas.includes(t))) return false
+      if (
+        tallasElegidas.length &&
+        !tallasElegidas.some((t) => (p.tallas?.[t] || 0) > 0)
+      )
+        return false
       if (p.precio > precioTope) return false
       if (soloOfertas && !p.precioAnterior) return false
       return true
@@ -57,9 +78,10 @@ export default function Catalogo() {
     const ordenados = [...filtrados]
     if (orden === 'precio-asc') ordenados.sort((a, b) => a.precio - b.precio)
     if (orden === 'precio-desc') ordenados.sort((a, b) => b.precio - a.precio)
-    if (orden === 'calificacion') ordenados.sort((a, b) => b.calificacion - a.calificacion)
+    if (orden === 'calificacion')
+      ordenados.sort((a, b) => (b.calificacion ?? 0) - (a.calificacion ?? 0))
     return ordenados
-  }, [busqueda, categoria, tallasElegidas, precioTope, orden, soloOfertas])
+  }, [productos, busqueda, genero, categoria, tallasElegidas, precioTope, orden, soloOfertas])
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12">
@@ -103,6 +125,32 @@ export default function Catalogo() {
           </div>
 
           <div className="mt-6 border-t border-borde pt-6">
+            <h3 className="text-xs font-semibold tracking-wide">Género</h3>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => cambiarGenero('')}
+                  className={genero === '' ? 'font-semibold' : 'text-gris hover:text-tinta'}
+                >
+                  Todos
+                </button>
+              </li>
+              {GENEROS.map((g) => (
+                <li key={g}>
+                  <button
+                    type="button"
+                    onClick={() => cambiarGenero(g)}
+                    className={genero === g ? 'font-semibold' : 'text-gris hover:text-tinta'}
+                  >
+                    {g}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-6 border-t border-borde pt-6">
             <h3 className="text-xs font-semibold tracking-wide">Categoría</h3>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
@@ -114,7 +162,7 @@ export default function Catalogo() {
                   Todas
                 </button>
               </li>
-              {CATEGORIAS.map((c) => (
+              {categoriasVisibles.map((c) => (
                 <li key={c}>
                   <button
                     type="button"
@@ -186,7 +234,9 @@ export default function Catalogo() {
         <section>
           <div className="flex items-baseline justify-between">
             <h1 className="titulo-seccion">
-              {soloOfertas ? 'Ofertas' : categoria || 'Catálogo de productos'}
+              {soloOfertas
+                ? 'Ofertas'
+                : categoria || genero || 'Catálogo de productos'}
             </h1>
             <p className="text-xs text-gris">
               {resultados.length} {resultados.length === 1 ? 'producto' : 'productos'}

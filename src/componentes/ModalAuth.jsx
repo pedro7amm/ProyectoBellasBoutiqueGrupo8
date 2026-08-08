@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSesion } from '../contexto/SesionContext.jsx'
+import { useClientes } from '../contexto/ClientesContext.jsx'
 import {
   IconoCandado,
   IconoCedula,
@@ -26,10 +29,21 @@ export default function ModalAuth({ abierto, alCerrar, pestanaInicial = 'sesion'
   const [pestana, setPestana] = useState(pestanaInicial)
   const [verClave, setVerClave] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const navegar = useNavigate()
+  const { iniciarSesionPorCorreo, generarClaveTemporal: generarClaveStaff } = useSesion()
+  const {
+    registrarCliente,
+    iniciarSesion: iniciarSesionCliente,
+    existeCorreo,
+    generarClaveTemporal: generarClaveCliente,
+  } = useClientes()
+  const [claveGenerada, setClaveGenerada] = useState('')
 
   useEffect(() => {
-  setPestana(pestanaInicial)
-}, [pestanaInicial, abierto])
+    setPestana(pestanaInicial)
+    setMensaje('')
+    setClaveGenerada('')
+  }, [pestanaInicial, abierto])
 
   useEffect(() => {
     const alPresionar = (e) => e.key === 'Escape' && alCerrar()
@@ -47,12 +61,68 @@ export default function ModalAuth({ abierto, alCerrar, pestanaInicial = 'sesion'
 
   const enviar = (e) => {
     e.preventDefault()
-    // Acá va la llamada a tu API de autenticación.
-    setMensaje(
-      pestana === 'sesion'
-        ? 'Falta conectar el inicio de sesión con el servidor.'
-        : 'Falta conectar el registro con el servidor.',
-    )
+    const datos = new FormData(e.target)
+    const correo = datos.get('email')
+    const clave = datos.get('password')
+
+    if (pestana === 'recuperar') {
+      const comoPersonal = generarClaveStaff(correo)
+      if (comoPersonal.ok) {
+        setClaveGenerada(comoPersonal.clave)
+        return
+      }
+      const comoCliente = generarClaveCliente(correo)
+      if (comoCliente.ok) {
+        setClaveGenerada(comoCliente.clave)
+        return
+      }
+      setMensaje('No encontramos ninguna cuenta con ese correo.')
+      return
+    }
+
+    if (pestana === 'sesion') {
+      // 1) ¿La cuenta es de personal (administrador o vendedor)? Se revisa primero por correo.
+      const comoPersonal = iniciarSesionPorCorreo(correo, clave)
+      if (comoPersonal.ok) {
+        alCerrar()
+        navegar('/admin') // el panel decide internamente qué mostrar según el rol
+        return
+      }
+      if (comoPersonal.motivo === 'inactivo') {
+        setMensaje(comoPersonal.error)
+        return
+      }
+
+      // 2) No es personal: ¿es un cliente registrado?
+      const comoCliente = iniciarSesionCliente(correo, clave)
+      if (comoCliente.ok) {
+        alCerrar() // se queda navegando la tienda normalmente
+        return
+      }
+
+      setMensaje('Correo o contraseña incorrectos.')
+      return
+    }
+
+    // Registro: toda persona que se registra desde acá queda como "cliente".
+    if (existeCorreo(correo)) {
+      setMensaje('Ya existe una cuenta con ese correo.')
+      return
+    }
+    const resultado = registrarCliente({
+      cedula: datos.get('cedula'),
+      nombre: datos.get('nombre'),
+      apellidos: datos.get('apellidos'),
+      correo,
+      telefono: datos.get('telefono'),
+      direccion: datos.get('direccion'),
+      clave,
+    })
+    if (resultado.ok) {
+      alCerrar()
+    } else {
+      setMensaje(resultado.error)
+    }
   }
 
   return (
@@ -100,9 +170,58 @@ export default function ModalAuth({ abierto, alCerrar, pestanaInicial = 'sesion'
           <img src="/img/logo.png" alt="Bella Boutique" className="mx-auto h-11 w-auto" />
 
           <h2 className="mt-6 text-center text-xl font-bold">
-            {pestana === 'sesion' ? 'Inicio de sesión' : 'Registro de usuario'}
+            {pestana === 'sesion' && 'Inicio de sesión'}
+            {pestana === 'registro' && 'Registro de usuario'}
+            {pestana === 'recuperar' && 'Recuperar contraseña'}
           </h2>
 
+          {pestana === 'recuperar' ? (
+            claveGenerada ? (
+              <div className="mt-8 space-y-5 text-center">
+                <p className="text-sm text-gris">
+                  Como no enviamos correos reales en esta demo, acá tenés tu contraseña nueva.
+                  Guardala y usala para iniciar sesión:
+                </p>
+                <p className="border border-borde bg-niebla px-4 py-4 text-lg font-bold tracking-wide">
+                  {claveGenerada}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setClaveGenerada('')
+                    setPestana('sesion')
+                  }}
+                  className="boton-linea w-full"
+                >
+                  Ir a iniciar sesión
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={enviar} className="mt-8 space-y-5">
+                <p className="text-center text-sm text-gris">
+                  Escribí tu correo y te generamos una contraseña nueva al instante.
+                </p>
+                <Campo icono={IconoCorreo} type="email" name="email" placeholder="Email" required />
+
+                {mensaje && (
+                  <p className="border border-borde bg-humo px-4 py-3 text-center text-xs text-gris">
+                    {mensaje}
+                  </p>
+                )}
+
+                <button type="submit" className="boton-linea w-full">
+                  Generar contraseña nueva
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPestana('sesion')}
+                  className="block w-full text-center text-xs text-gris underline hover:text-tinta"
+                >
+                  Volver a iniciar sesión
+                </button>
+              </form>
+            )
+          ) : (
           <form onSubmit={enviar} className="mt-8 space-y-5">
             {pestana === 'registro' && (
               <>
@@ -157,7 +276,11 @@ export default function ModalAuth({ abierto, alCerrar, pestanaInicial = 'sesion'
 
             {pestana === 'sesion' && (
               <p className="text-center">
-                <button type="button" className="text-xs text-gris underline hover:text-tinta">
+                <button
+                  type="button"
+                  onClick={() => setPestana('recuperar')}
+                  className="text-xs text-gris underline hover:text-tinta"
+                >
                   ¿Olvidó la contraseña?
                 </button>
               </p>
@@ -173,6 +296,7 @@ export default function ModalAuth({ abierto, alCerrar, pestanaInicial = 'sesion'
               {pestana === 'sesion' ? 'Iniciar sesión' : 'Registrarse'}
             </button>
           </form>
+          )}
 
           {pestana === 'sesion' && (
             <div className="mt-8 border-t border-borde pt-6">

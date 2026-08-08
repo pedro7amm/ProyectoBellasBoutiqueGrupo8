@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CATEGORIAS } from '../datos/productos.js'
+import { CATEGORIAS_POR_GENERO, GENEROS } from '../datos/productos.js'
 import { IconoCerrar, IconoChevron } from './Iconos.jsx'
 
 export default function MenuLateral({ abierto, alCerrar }) {
   const [tiendaAbierta, setTiendaAbierta] = useState(true)
+  const [generoAbierto, setGeneroAbierto] = useState(null)
 
   useEffect(() => {
     const alPresionar = (e) => e.key === 'Escape' && alCerrar()
@@ -77,16 +78,37 @@ export default function MenuLateral({ abierto, alCerrar }) {
             </button>
 
             {tiendaAbierta && (
-              <ul className="mt-4 space-y-3 pl-11">
-                {CATEGORIAS.map((categoria) => (
-                  <li key={categoria}>
-                    <Link
-                      to={`/catalogo?categoria=${encodeURIComponent(categoria)}`}
-                      onClick={alCerrar}
-                      className="block text-sm text-gris transition hover:text-tinta"
+              <ul className="mt-4 space-y-1 pl-11">
+                {GENEROS.map((genero) => (
+                  <li key={genero}>
+                    <button
+                      type="button"
+                      onClick={() => setGeneroAbierto((v) => (v === genero ? null : genero))}
+                      className="flex w-full items-center justify-between py-2 text-sm text-gris transition hover:text-tinta"
+                      aria-expanded={generoAbierto === genero}
                     >
-                      {categoria}
-                    </Link>
+                      {genero}
+                      <IconoChevron
+                        tamano={14}
+                        direccion={generoAbierto === genero ? 'arriba' : 'abajo'}
+                      />
+                    </button>
+
+                    {generoAbierto === genero && (
+                      <ul className="mb-2 space-y-3 pb-1 pl-4">
+                        {CATEGORIAS_POR_GENERO[genero].map((categoria) => (
+                          <li key={categoria}>
+                            <Link
+                              to={`/catalogo?genero=${encodeURIComponent(genero)}&categoria=${encodeURIComponent(categoria)}`}
+                              onClick={alCerrar}
+                              className="block text-sm text-gris transition hover:text-tinta"
+                            >
+                              {categoria}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 ))}
               </ul>

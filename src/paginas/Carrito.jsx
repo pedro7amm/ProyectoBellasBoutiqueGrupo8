@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 import { colones, useCarrito } from '../contexto/CarritoContext.jsx'
+import { useClientes } from '../contexto/ClientesContext.jsx'
 import { IconoBasura, IconoMas, IconoMenos } from '../componentes/Iconos.jsx'
 
 export function LineasCarrito({ compacto = false }) {
@@ -88,7 +89,17 @@ export function ResumenTotales() {
 
 export default function Carrito() {
   const { lineas, unidades } = useCarrito()
+  const { clienteActual } = useClientes()
+  const { abrirCuenta } = useOutletContext()
   const navegar = useNavigate()
+
+  const alFacturar = () => {
+    if (!clienteActual) {
+      abrirCuenta()
+      return
+    }
+    navegar('/facturacion')
+  }
 
   if (lineas.length === 0) {
     return (
@@ -120,13 +131,14 @@ export default function Carrito() {
           <div className="mt-5">
             <ResumenTotales />
           </div>
-          <button
-            type="button"
-            onClick={() => navegar('/facturacion')}
-            className="boton-solido mt-6 w-full"
-          >
+          <button type="button" onClick={alFacturar} className="boton-solido mt-6 w-full">
             Facturación
           </button>
+          {!clienteActual && (
+            <p className="mt-2 text-center text-[11px] text-gris">
+              Necesitás iniciar sesión para continuar con la compra.
+            </p>
+          )}
           <Link
             to="/catalogo"
             className="mt-4 block text-center text-xs text-gris underline transition hover:text-tinta"

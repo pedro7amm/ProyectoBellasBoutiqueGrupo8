@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TarjetaProducto from '../componentes/TarjetaProducto.jsx'
-import { CATEGORIAS, productos } from '../datos/productos.js'
+import { CATEGORIAS } from '../datos/productos.js'
+import { useProductos } from '../contexto/ProductosContext.jsx'
 import { IconoFlecha } from '../componentes/Iconos.jsx'
 
 const DIAPOSITIVAS = [
@@ -69,6 +70,7 @@ function Hero() {
 }
 
 export default function Inicio() {
+  const { productos } = useProductos()
   const destacados = productos.slice(0, 4)
 
   return (

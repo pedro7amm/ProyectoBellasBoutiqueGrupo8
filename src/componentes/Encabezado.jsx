@@ -1,8 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useCarrito } from '../contexto/CarritoContext.jsx'
+import { useClientes } from '../contexto/ClientesContext.jsx'
+import MenuCuenta from './MenuCuenta.jsx'
 import {
   IconoBolsa,
   IconoBuscar,
+  IconoCandado,
   IconoCorazon,
   IconoMenu,
   IconoUsuario,
@@ -12,6 +15,7 @@ const BENEFICIOS = ['Mejor calidad', 'Entrega rápida', '100% Original', 'Confia
 
 export default function Encabezado({ alAbrirMenu, alAbrirCuenta }) {
   const { unidades } = useCarrito()
+  const { clienteActual } = useClientes()
   const navegar = useNavigate()
 
   return (
@@ -54,14 +58,18 @@ export default function Encabezado({ alAbrirMenu, alAbrirCuenta }) {
             >
               <IconoBuscar tamano={22} />
             </button>
-            <button
-              type="button"
-              onClick={alAbrirCuenta}
-              className="p-2 transition hover:opacity-60"
-              aria-label="Iniciar sesión"
-            >
-              <IconoUsuario tamano={22} />
-            </button>
+            {clienteActual ? (
+              <MenuCuenta />
+            ) : (
+              <button
+                type="button"
+                onClick={alAbrirCuenta}
+                className="p-2 transition hover:opacity-60"
+                aria-label="Iniciar sesión"
+              >
+                <IconoUsuario tamano={22} />
+              </button>
+            )}
             <Link to="/catalogo" className="p-2 transition hover:opacity-60" aria-label="Favoritos">
               <IconoCorazon tamano={22} />
             </Link>
@@ -76,6 +84,14 @@ export default function Encabezado({ alAbrirMenu, alAbrirCuenta }) {
                   {unidades}
                 </span>
               )}
+            </Link>
+            <Link
+              to="/admin/login"
+              className="p-2 text-gris/70 transition hover:text-tinta hover:opacity-100"
+              aria-label="Acceso de personal (vendedores y administradores)"
+              title="Acceso de personal"
+            >
+              <IconoCandado tamano={18} />
             </Link>
           </nav>
         </div>

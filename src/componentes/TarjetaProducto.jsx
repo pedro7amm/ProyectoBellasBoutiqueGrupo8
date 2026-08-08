@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import { colones, useCarrito } from '../contexto/CarritoContext.jsx'
+import { TALLAS } from '../datos/productos.js'
 import { IconoCorazon, IconoEstrella } from './Iconos.jsx'
 
 export default function TarjetaProducto({ producto }) {
   const { agregar } = useCarrito()
-  const [talla, setTalla] = useState(producto.tallas[0])
+  const tallasDelProducto = TALLAS.filter((t) => t in (producto.tallas || {}))
+  const primeraConStock = tallasDelProducto.find((t) => producto.tallas[t] > 0)
+  const [talla, setTalla] = useState(primeraConStock || tallasDelProducto[0])
   const [favorito, setFavorito] = useState(false)
   const [agregado, setAgregado] = useState(false)
 
   const sinStock = producto.stock === 0
+  const stockTallaElegida = producto.tallas?.[talla] || 0
 
   const alAgregar = () => {
+    if (stockTallaElegida === 0) return
     agregar(producto, talla)
     setAgregado(true)
     setTimeout(() => setAgregado(false), 1600)
@@ -46,21 +51,28 @@ export default function TarjetaProducto({ producto }) {
         <div className="absolute inset-x-0 bottom-0 bg-white/95 px-4 py-3 transition duration-300 sm:translate-y-full sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100">
           <p className="mb-2 text-center text-[11px] font-semibold tracking-wide">Talla</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {producto.tallas.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTalla(t)}
-                aria-pressed={talla === t}
-                className={`h-8 w-8 rounded-full border text-[11px] transition ${
-                  talla === t
-                    ? 'border-tinta bg-tinta text-white'
-                    : 'border-borde text-gris hover:border-tinta hover:text-tinta'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+            {tallasDelProducto.map((t) => {
+              const agotada = producto.tallas[t] === 0
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => !agotada && setTalla(t)}
+                  disabled={agotada}
+                  aria-pressed={talla === t}
+                  title={agotada ? `Talla ${t} agotada` : `${producto.tallas[t]} disponibles`}
+                  className={`h-8 w-8 rounded-full border text-[11px] transition ${
+                    agotada
+                      ? 'cursor-not-allowed border-borde text-gris/40 line-through'
+                      : talla === t
+                        ? 'border-tinta bg-tinta text-white'
+                        : 'border-borde text-gris hover:border-tinta hover:text-tinta'
+                  }`}
+                >
+                  {t}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -74,7 +86,7 @@ export default function TarjetaProducto({ producto }) {
             <span className="text-estrella">
               <IconoEstrella tamano={13} />
             </span>
-            {producto.calificacion}
+            {producto.calificacion != null ? producto.calificacion : 'Nuevo'}
           </span>
           <span>·</span>
           <span>{producto.categoria}</span>
@@ -88,13 +100,17 @@ export default function TarjetaProducto({ producto }) {
         </div>
 
         <p className="mt-1 text-[11px] text-gris">
-          {sinStock ? 'Agotado' : `${producto.stock} disponibles · ${producto.proveedor}`}
+          {sinStock
+            ? 'Agotado'
+            : stockTallaElegida === 0
+              ? `Talla ${talla} agotada`
+              : `${stockTallaElegida} disponibles en talla ${talla} · ${producto.proveedor}`}
         </p>
 
         <button
           type="button"
           onClick={alAgregar}
-          disabled={sinStock}
+          disabled={sinStock || stockTallaElegida === 0}
           className="boton-solido mt-4 w-full rounded-full px-4 py-3 text-xs"
         >
           {agregado ? 'Agregado al carrito' : 'Añadir al carrito'}
