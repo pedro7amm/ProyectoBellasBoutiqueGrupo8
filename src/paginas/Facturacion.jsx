@@ -1,6 +1,9 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useNavigate, useOutletContext } from 'react-router-dom'
 import { colones, useCarrito } from '../contexto/CarritoContext.jsx'
+import { usePedidos } from '../contexto/PedidosContext.jsx'
+import { useProductos } from '../contexto/ProductosContext.jsx'
+import { useClientes } from '../contexto/ClientesContext.jsx'
 import { LineasCarrito, ResumenTotales } from './Carrito.jsx'
 import {
   IconoCaja,
@@ -43,17 +46,29 @@ const Paso = ({ numero, activo }) => (
 
 export default function Facturacion() {
   const { lineas, total, vaciar } = useCarrito()
+  const { registrarPedido } = usePedidos()
+  const { descontarStock } = useProductos()
+  const { clienteActual } = useClientes()
+  const { abrirCuenta } = useOutletContext()
   const navegar = useNavigate()
 
   const [paso, setPaso] = useState(1)
   const [orden, setOrden] = useState(null)
   const [datos, setDatos] = useState({
-    nombre: '',
+    nombre: clienteActual ? `${clienteActual.nombre} ${clienteActual.apellidos || ''}`.trim() : '',
     provincia: PROVINCIAS[0],
-    direccion: '',
+    direccion: clienteActual?.direccion || '',
     envio: ENVIOS[0].id,
     pago: PAGOS[0],
   })
+
+  // Sin sesión de cliente no se puede facturar: se manda de vuelta al carrito
+  // (que conserva las prendas) y se abre el inicio de sesión.
+  useEffect(() => {
+    if (!clienteActual) abrirCuenta()
+  }, [clienteActual, abrirCuenta])
+
+  if (!clienteActual) return <Navigate to="/carrito" replace />
 
   if (lineas.length === 0 && !orden) return <Navigate to="/carrito" replace />
 
@@ -70,7 +85,19 @@ export default function Facturacion() {
   const pagar = (e) => {
     e.preventDefault()
     // Acá va la llamada a tu pasarela de pago.
-    setOrden(numeroOrden())
+    const numero = numeroOrden()
+    registrarPedido({
+      numero,
+      cliente: datos.nombre,
+      clienteId: clienteActual.id,
+      direccion: datos.direccion,
+      provincia: datos.provincia,
+      envio: { nombre: envioElegido.nombre, costo: envioElegido.costo },
+      pago: datos.pago,
+      lineas,
+    })
+    lineas.forEach((l) => descontarStock(l.id, l.talla, l.cantidad))
+    setOrden(numero)
     vaciar()
   }
 
@@ -228,7 +255,7 @@ export default function Facturacion() {
 
       {/* Confirmación */}
       {orden && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
           <div
             role="dialog"
             aria-modal="true"
@@ -248,9 +275,17 @@ export default function Facturacion() {
               avisamos cuando el pedido salga.
             </p>
 
+            <VistaCorreoConfirmacion numero={orden} />
+
             <button type="button" onClick={cerrarConfirmacion} className="boton-solido mt-8 w-full">
               Volver al inicio
             </button>
+            <Link
+              to={`/factura/${orden}`}
+              className="mt-4 block text-xs text-tinta underline transition hover:opacity-70"
+            >
+              Descargar factura
+            </Link>
             <Link
               to="/catalogo"
               onClick={() => setOrden(null)}
@@ -262,5 +297,56 @@ export default function Facturacion() {
         </div>
       )}
     </section>
+  )
+}
+
+/**
+ * Simula el correo de confirmación que "se enviaría" al cliente. Sin backend no hay
+ * forma de mandar un correo real, así que lo mostramos en pantalla — el contenido sale
+ * del pedido ya guardado (no del carrito, que para este punto ya se vació).
+ */
+function VistaCorreoConfirmacion({ numero }) {
+  const { pedidos } = usePedidos()
+  const [abierto, setAbierto] = useState(false)
+  const pedido = pedidos.find((p) => p.numero === numero)
+
+  if (!pedido) return null
+
+  const monto = pedido.lineas.reduce((s, l) => s + l.precio * l.cantidad, 0)
+
+  return (
+    <div className="mt-4 text-left">
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        className="mx-auto block text-xs text-gris underline hover:text-tinta"
+      >
+        {abierto ? 'Ocultar' : 'Ver'} correo de confirmación (simulado)
+      </button>
+
+      {abierto && (
+        <div className="mt-4 border border-borde bg-humo px-5 py-4 text-xs text-gris">
+          <p className="text-[11px] uppercase tracking-wide text-gris/70">
+            Para: {pedido.cliente || 'vos'} — Asunto: Confirmación de tu pedido #{pedido.numero}
+          </p>
+          <p className="mt-3">Hola {pedido.cliente},</p>
+          <p className="mt-2">
+            Confirmamos tu compra en Bella Boutique. Estos son los detalles:
+          </p>
+          <ul className="mt-2 space-y-1">
+            {pedido.lineas.map((l, i) => (
+              <li key={i}>
+                {l.cantidad} × {l.nombre} — {colones(l.precio * l.cantidad)}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 font-semibold text-tinta">Total: {colones(monto)}</p>
+          <p className="mt-2">
+            Entrega en: {pedido.direccion}, {pedido.provincia}
+          </p>
+          <p className="mt-3">Gracias por comprar con nosotras.</p>
+        </div>
+      )}
+    </div>
   )
 }

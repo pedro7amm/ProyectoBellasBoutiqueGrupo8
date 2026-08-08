@@ -190,3 +190,29 @@ export const IconoGoogle = (p) => (
     <path d="M12 10.5h4a4 4 0 1 1-1.2-2.6" />
   </Svg>
 )
+
+export const IconoEngranaje = (p) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3H9.8l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9c.6.5 1.3.9 2 1.2l.4 2.6h4.4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" />
+  </Svg>
+)
+
+export const IconoSalir = (p) => (
+  <Svg {...p}>
+    <path d="M15 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h9" />
+    <path d="M10 12h10m0 0-3-3m3 3-3 3" />
+  </Svg>
+)
+
+export const IconoChat = (p) => (
+  <Svg {...p}>
+    <path d="M4 5h16v11H8l-4 4V5Z" />
+  </Svg>
+)
+
+export const IconoEnviar = (p) => (
+  <Svg {...p} fill="currentColor" stroke="none">
+    <path d="M3 11.5 20.5 4l-6 16.5-3.2-7.3L3 11.5Z" />
+  </Svg>
+)

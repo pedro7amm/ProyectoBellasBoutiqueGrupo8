@@ -11,6 +11,20 @@
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+
+  /* Tokens del panel de administración/vendedores, tomados del Figma de "Page 2" */
+  --color-admin-bg: #f1f4fa;
+  --color-admin-surface: #ffffff;
+  --color-admin-ink: #06152b;
+  --color-admin-muted: #828282;
+  --color-admin-primary: #3a36db;
+  --color-admin-dark: #333333;
+  --color-admin-success-bg: #e7f3de;
+  --color-admin-success-text: #3b6d11;
+  --color-admin-danger-bg: #f6e4e4;
+  --color-admin-danger-text: #791f1f;
+
+  --font-admin: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -45,6 +59,40 @@
 
   .titulo-seccion {
     @apply text-3xl font-bold tracking-tight sm:text-4xl;
+  }
+
+  /* ---- Panel de administración / vendedores ---- */
+  .admin-boton-oscuro {
+    @apply inline-flex items-center justify-center rounded-[5px] bg-admin-dark px-6 py-3 text-sm
+           text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .admin-boton-claro {
+    @apply inline-flex items-center justify-center rounded-[5px] border border-admin-muted/40 bg-white px-6 py-3
+           text-sm text-admin-ink transition hover:border-admin-ink disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .admin-input {
+    @apply w-full rounded-[4px] border border-admin-muted/60 bg-white px-3 py-2 text-sm text-admin-ink
+           placeholder:text-admin-muted focus:border-admin-primary focus:outline-none;
+  }
+
+  .admin-card {
+    @apply rounded-[10px] bg-admin-surface;
+  }
+
+  .admin-tab {
+    @apply flex h-11 flex-1 items-center justify-center rounded-[5px] text-sm transition sm:flex-initial sm:px-8;
+  }
+  .admin-tab-activo {
+    @apply bg-admin-dark text-white;
+  }
+  .admin-tab-inactivo {
+    @apply bg-white text-admin-ink/70 hover:text-admin-ink;
+  }
+
+  .admin-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium;
   }
 }
 

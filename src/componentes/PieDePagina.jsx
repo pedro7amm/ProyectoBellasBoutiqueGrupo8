@@ -114,8 +114,11 @@ export default function PieDePagina() {
         </div>
       </div>
 
-      <div className="bg-tinta py-4 text-center text-xs text-white/80">
-        © {new Date().getFullYear()} Bella Boutique
+      <div className="flex flex-col items-center gap-1 bg-tinta py-4 text-center text-xs text-white/80 sm:flex-row sm:justify-center sm:gap-4">
+        <span>© {new Date().getFullYear()} Bella Boutique</span>
+        <Link to="/admin/login" className="underline transition hover:text-white">
+          Acceso interno
+        </Link>
       </div>
     </footer>
   )

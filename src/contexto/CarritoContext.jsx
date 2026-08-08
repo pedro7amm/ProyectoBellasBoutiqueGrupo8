@@ -30,11 +30,12 @@ export function ProveedorCarrito({ children }) {
   }, [lineas])
 
   const agregar = (producto, talla, cantidad = 1) => {
+    const stockTalla = producto.tallas?.[talla] || 0
     setLineas((actuales) => {
       const existente = actuales.find((l) => l.id === producto.id && l.talla === talla)
       if (existente) {
         return actuales.map((l) =>
-          l === existente ? { ...l, cantidad: Math.min(l.cantidad + cantidad, producto.stock) } : l,
+          l === existente ? { ...l, cantidad: Math.min(l.cantidad + cantidad, stockTalla) } : l,
         )
       }
       return [
@@ -44,9 +45,9 @@ export function ProveedorCarrito({ children }) {
           nombre: producto.nombre,
           precio: producto.precio,
           imagen: producto.imagen,
-          stock: producto.stock,
+          stock: stockTalla,
           talla,
-          cantidad,
+          cantidad: Math.min(cantidad, stockTalla),
         },
       ]
     })
