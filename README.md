@@ -38,13 +38,13 @@ npm -v
 ## Clonar el proyecto
 
 ```bash
-git clone https://github.com/usuario/bellas-boutique-frontend.git
+git clone https://github.com/pedro7amm/ProyectoBellasBoutiqueGrupo8.git
 ```
 
 Entrar al proyecto
 
 ```bash
-cd bellas-boutique-frontend
+cd ProyectoBellasBoutiqueGrupo8
 ```
 
 ---
