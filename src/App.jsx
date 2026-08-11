@@ -45,7 +45,6 @@ export default function App() {
         <Route path="/ayuda" element={<Ayuda />} />
         <Route path="/mis-pedidos" element={<MisPedidos />} />
         <Route path="/cuenta" element={<CuentaCliente />} />
-        <Route path="*" element={<NoEncontrada />} />
       </Route>
 
       <Route path="/factura/:numero" element={<FacturaDescarga />} />
@@ -75,6 +74,9 @@ export default function App() {
         <Route path="soporte" element={<SoporteAdmin />} />
         <Route path="configuracion" element={<ConfiguracionAdmin />} />
       </Route>
+
+      {/* 404 global */}
+      <Route path="*" element={<NoEncontrada />} />
     </Routes>
   )
 }
